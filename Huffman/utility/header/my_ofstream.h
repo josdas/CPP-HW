@@ -10,6 +10,7 @@ struct my_ofstream {
 	void put(Stream_input const& stream);
 	void finalize();
 	~my_ofstream();
+	bool fail() const;
 
 private:
 	std::ofstream stream_;

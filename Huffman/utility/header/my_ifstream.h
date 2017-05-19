@@ -11,6 +11,8 @@ struct my_ifstream {
 	explicit my_ifstream(char* _name);
 	~my_ifstream();
 	void reopen();
+	bool fail() const;
+
 private:
 	std::ifstream stream_;
 	char* name_;

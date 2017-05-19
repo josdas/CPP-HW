@@ -34,3 +34,7 @@ void my_ifstream::reopen() {
 	stream_.close();
 	stream_.open(name_, std::ifstream::binary);
 }
+
+bool my_ifstream::fail() const {
+	return stream_.fail();
+}

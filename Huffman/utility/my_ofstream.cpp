@@ -55,3 +55,7 @@ my_ofstream::~my_ofstream() {
 	finalize();
 	stream_.close();
 }
+
+bool my_ofstream::fail() const {
+	return stream_.fail();
+}

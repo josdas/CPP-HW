@@ -1,4 +1,5 @@
 #include "tree.h"
+#include "exceptions.h"
 
 node Tree::merge(node a, node b) {
 	root++;
@@ -19,8 +20,39 @@ void Tree::dfs(Word word, int v, vector<Word>& codes) {
 	}
 }
 
-Tree::Tree(vector<vector<int> > const& children): children(children) {
+size_t Tree::check_dfs(int v, std::vector<bool> &flags) const {
+	if(flags[v]) {
+		return 0;
+	}
+	flags[v] = true;
+	size_t sum = 1;
+	for(auto u : children[v]) {
+		sum += check_dfs(u, flags);
+	}
+	return sum;
+}
+
+Tree::Tree(vector<vector<int> > const& children): 
+	children(children) {
 	root = SIZE_BLOCK * 2 - 2;
+	if(children.size() != SIZE_BLOCK * 2) {
+		throw new Decoder_tree_error();
+	}
+	for(auto &v : children) {
+		if (v.size() != 2) {
+			throw new Decoder_tree_error();
+		}
+		for(auto &u : v) {
+			if(u < 0 || u > root) {
+				throw new Decoder_tree_error();
+			}
+		}
+	}
+	vector<bool> flags(children.size(), false);
+	size_t m = check_dfs(root, flags);
+	if(m + 1 != children.size()) {
+		throw new Decoder_tree_error();
+	}
 }
 
 Tree::Tree(Accomulator const& accomulator) {

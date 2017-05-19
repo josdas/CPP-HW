@@ -16,11 +16,14 @@ bool Stream_output::get_next() {
 	return ((data_[static_cast<size_t>(temp >> 3)] >> (temp & 7)) & 1) != 0;
 }
 
-machine_word Stream_output::get_next_byte() {
-	cur_ += 8;
-	return data_[static_cast<size_t>((cur_ >> 3) - 1)];
+machine_word Stream_output::get_machine_word(int64_t ind) const {
+	return data_[ind];
 }
 
 bool Stream_output::end() const {
 	return cur_ == end_;
+}
+
+int64_t Stream_output::get_end() const {
+	return end_;
 }

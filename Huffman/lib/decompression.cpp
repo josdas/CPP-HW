@@ -1,7 +1,9 @@
 #include "decompress.h"
 #include "stream_output.h"
 
-Decompression::Decompression(vector<vector<int> > const& temp): tree_(temp), cur_vertex(tree_.get_root()) { }
+Decompression::Decompression(vector<vector<int> > const& temp): 
+	tree_(temp), 
+	cur_vertex(tree_.get_root()) { }
 
 void Decompression::decompress_block(Stream_output& stream, Stream_input& result) {
 	while (!stream.end()) {

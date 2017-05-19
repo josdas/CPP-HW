@@ -2,13 +2,16 @@
 #include "stream_input.h"
 #include "stream_output.h"
 
-Compression::Compression(Accomulator accomulator): tree_(accomulator), accomulator_(accomulator) {
+Compression::Compression(Accomulator accomulator): 
+	tree_(accomulator),
+	accomulator_(accomulator) {
 	codes_ = tree_.get_all_code();
 }
 
 void Compression::compress_block(Stream_output& stream_output, Stream_input& stream) const {
-	while (!stream_output.end()) {
-		auto word = stream_output.get_next_byte();
+	int64_t end = stream_output.get_end() >> 3;
+	for (int64_t i = 0; i < end; i++) {
+		auto word = stream_output.get_machine_word(i);
 		stream.add_word(codes_[word]);
 	}
 }

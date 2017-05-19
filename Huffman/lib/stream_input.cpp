@@ -1,6 +1,6 @@
 #include "stream_input.h"
-#include <iostream>
-Stream_input::Stream_input(): cur_(0) { }
+Stream_input::Stream_input():
+	cur_(0) { }
 
 void Stream_input::add_word(Word const& word) {
 	data_.resize((cur_ + word.get_length() + 8) >> 3);

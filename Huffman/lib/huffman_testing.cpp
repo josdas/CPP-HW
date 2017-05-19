@@ -17,14 +17,6 @@ void CHECK(Accomulator accomulator, vector<machine_word> T) {
 	Stream_input stream_input_d;
 	decompression.decompress_block(stream_output_d, stream_input_d);
 
-	if (T != stream_input_d.data()) {
-		for (int i = 0; i < T.size(); i++) {
-			if (T[i] != stream_input_d.data()[i]) {
-				std::cerr << 2;
-			}
-		}
-		std::cerr << 1;
-	}
 	ASSERT_EQ(T, stream_input_d.data());
 }
 
@@ -65,7 +57,7 @@ TEST(correctness, random_tests_several_part) {
 		auto threshold = stream_input.get_length();
 		for (size_t j = 0; j < data.size(); j++) {
 			temp.push_back(data[j]);
-			if (temp.size() > block_size || j + 1 == data.size()) {
+			if ((int)temp.size() > block_size || j + 1 == data.size()) {
 				size_t r = std::min(threshold, temp.size() * 8);
 				threshold -= r;
 				Stream_output stream_output_d(temp, r);
@@ -139,7 +131,7 @@ TEST(correctness, all_binary) {
 TEST(correctness, big_all_binary_1) {
 	int size = 1000 * 100;
 	Accomulator accomulator;
-	for (int64_t i = 0; i < 60; i++) {
+	for (int64_t i = 0; i < 50; i++) {
 		accomulator.set(static_cast<machine_word>(i), static_cast<int64_t>(1) << i);
 	}
 	for (int i = 0; i < 50; i++) {
@@ -154,7 +146,7 @@ TEST(correctness, big_all_binary_1) {
 TEST(correctness, big_all_binary_2) {
 	int size = 1000 * 100;
 	Accomulator accomulator;
-	for (int64_t i = 0; i < 60; i++) {
+	for (int64_t i = 0; i < 50; i++) {
 		accomulator.set(static_cast<machine_word>(i), static_cast<int64_t>(1) << std::min(i, static_cast<int64_t>(60)));
 	}
 	for (int i = 0; i < 50; i++) {
@@ -165,3 +157,51 @@ TEST(correctness, big_all_binary_2) {
 		CHECK(accomulator, T);
 	}
 }
+
+TEST(correctness, error_build) {
+	int size = 10000;
+	Accomulator accomulator;
+	vector<machine_word> T(size);
+	for (int j = 0; j < size; j++) {
+		T[j] = rand() % 256;
+	}
+	accomulator.add_block(T);
+	Compression compression(accomulator);
+	auto Tree = compression.get_tree().get_children();
+	Tree[0][0] = -1;
+	try {
+		Decompression decompression(Tree);
+		ASSERT_EQ(1, 2);
+	}
+	catch(...) {
+		// OK
+	}
+	Tree = compression.get_tree().get_children();
+	Tree[0][0] = 1000;
+	try {
+		Decompression decompression(Tree);
+		ASSERT_EQ(1, 2);
+	}
+	catch (...) {
+		// OK
+	}
+	Tree = compression.get_tree().get_children();
+	Tree[0].resize(3);
+	try {
+		Decompression decompression(Tree);
+		ASSERT_EQ(1, 2);
+	}
+	catch (...) {
+		// OK
+	}
+	Tree = compression.get_tree().get_children();
+	Tree[333][0] = 444;
+	try {
+		Decompression decompression(Tree);
+		ASSERT_EQ(1, 2);
+	}
+	catch (...) {
+		// OK
+	}
+}
+
