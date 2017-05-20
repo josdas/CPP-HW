@@ -51,16 +51,18 @@ struct vector {
 private:
 	static const size_t size_small = 8;
 
-
+	struct my_data {
+		size_t _capacity;
+		std::shared_ptr<T> _ptr;
+	};
 
 	union small_big_type {
 		T _small_data[size_small];
-		size_t _capacity;
+		my_data _heap_data;
 	} _obj;
 
 	size_t _size;
 	T* _cur_data;
-	std::shared_ptr<T> _heap_data;
 
 	struct my_deleter {
 		void operator()(T* p) {
@@ -82,8 +84,7 @@ private:
 
 template <class T>
 vector<T>::vector() :
-	_size(0),
-	_heap_data(nullptr) {
+	_size(0) {
 	update_data();
 }
 
@@ -180,7 +181,6 @@ void vector<T>::swap(vector& a) noexcept {
 	using std::swap;
 	swap(a._obj, _obj);
 	swap(a._size, _size);
-	swap(a._heap_data, _heap_data);
 	update_data();
 	a.update_data();
 }
@@ -197,24 +197,24 @@ template <class T>
 void vector<T>::set_capacity(size_t capacity) {
 	if (is_big() || capacity > size_small) {
 		T* temp = copy_data(capacity, get_data(), size());
-		_heap_data.reset(temp, vector<T>::my_deleter());
+		_obj._heap_data.reset(temp, vector<T>::my_deleter());
 		_obj._capacity = capacity;
-		_cur_data = _heap_data.get();
+		_cur_data = _obj._heap_data._ptr.get();
 	}
 }
 
 template <class T>
 void vector<T>::change() {
-	if (is_big() && !_heap_data.unique()) {
-		_heap_data.reset(copy_data(size(), get_data(), size()),
+	if (is_big() && !_obj._heap_data._ptr.unique()) {
+		_obj._heap_data._ptr.reset(copy_data(size(), get_data(), size()),
 			vector<T>::my_deleter());
-		_cur_data = _heap_data.get();
+		_cur_data = _obj._heap_data._ptr.get();
 	}
 }
 
 template <class T>
 bool vector<T>::is_big() const {
-	return _heap_data.get() != nullptr;
+	return _cur_data != _obj._small_data;
 }
 
 template <class T>
@@ -233,7 +233,7 @@ T* vector<T>::get_data() {
 template <class T>
 void vector<T>::update_data() {
 	if(is_big()) {
-		_cur_data = _heap_data.get();
+		_cur_data = _obj._heap_data._ptr.get();
 	}
 	else {
 		_cur_data = _obj._small_data;

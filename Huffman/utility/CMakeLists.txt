@@ -17,8 +17,4 @@ add_executable(utility
 			   encode_tree.cpp)
 
 install(TARGETS utility DESTINATION bin)
-if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-	target_link_libraries(utility -lib)
-else ()
-	target_link_libraries(utility lib.lib)
-endif()
+target_link_libraries(utility lib)
