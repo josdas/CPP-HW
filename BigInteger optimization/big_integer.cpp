@@ -19,7 +19,7 @@ bool is_neg(T x) {
 
 vector<double_digit_type> get_number_from_str_base10(string const& str) {
 	vector<double_digit_type> temp;
-	int end;
+	size_t end;
 	if (str[0] == '-') {
 		end = 1;
 	}
