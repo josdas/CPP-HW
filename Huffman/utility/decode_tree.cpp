@@ -1,11 +1,12 @@
 #include "decode_tree.h"
 #include "exceptions.h"
+#include <limits.h>
 
 int64_t get_int64(my_ifstream& ifstream, int len) {
 	int64_t x = 0;
 	for (auto i = 0; i < len; i++) {
 		if(ifstream.end()) {
-			throw new Decoder_tree_error();
+			throw Decoder_tree_error();
 		}
 		int t = ifstream.get();
 		x <<= 8;
@@ -18,7 +19,7 @@ int64_t get_int64(my_ifstream& ifstream, int len) {
 template<typename T>
 T check(T x, T l, T r) {
 	if (x < l || x > r) {
-		throw new Decoder_tree_error();
+		throw Decoder_tree_error();
 	}
 	return x;
 }

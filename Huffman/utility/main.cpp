@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
 
 		if(from.fail() || to.fail()) {
 			std::cerr << "Failed to open files\n";
-			exit(1);
+			return 1;
 		}
 
 		if (strcmp(argv[1], "-compress") == 0 || strcmp(argv[1], "-c") == 0) {
@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
 			from.reopen();
 			if (from.fail()) {
 				std::cerr << "Failed to reopen file\n";
-				exit(1);
+				return 1;
 			}
 
 			write_code(compression, to);
@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
 			}
 			catch(...) {
 				std::cerr << "Failed to parse file\n";
-				exit(1);
+				return 1;
 			}
 			Decompression decompress(temp_decompress);
 			std::cerr << "OK build\n";

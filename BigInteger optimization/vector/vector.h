@@ -51,6 +51,8 @@ struct vector {
 private:
 	static const size_t size_small = 8;
 
+
+
 	union small_big_type {
 		T _small_data[size_small];
 		size_t _capacity;

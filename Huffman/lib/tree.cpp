@@ -36,22 +36,22 @@ Tree::Tree(vector<vector<int> > const& children):
 	children(children) {
 	root = SIZE_BLOCK * 2 - 2;
 	if(children.size() != SIZE_BLOCK * 2) {
-		throw new Decoder_tree_error();
+		throw Decoder_tree_error();
 	}
 	for(auto &v : children) {
 		if (v.size() != 2) {
-			throw new Decoder_tree_error();
+			throw Decoder_tree_error();
 		}
 		for(auto &u : v) {
 			if(u < 0 || u > root) {
-				throw new Decoder_tree_error();
+				throw Decoder_tree_error();
 			}
 		}
 	}
 	vector<bool> flags(children.size(), false);
 	size_t m = check_dfs(root, flags);
 	if(m + 1 != children.size()) {
-		throw new Decoder_tree_error();
+		throw Decoder_tree_error();
 	}
 }
 
