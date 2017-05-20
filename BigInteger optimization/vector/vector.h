@@ -16,6 +16,7 @@ T* copy_data(size_t capacity, T* data, size_t size,
 template <class T>
 struct vector {
 	vector();
+	~vector();
 	vector(vector const& a);
 	vector(size_t size, T const& a);
 	explicit vector(size_t size);
@@ -49,19 +50,30 @@ struct vector {
 	void swap(vector& a) noexcept;
 
 private:
+	void to_big();
+
 	static const size_t size_small = 8;
 
 	struct my_data {
-		size_t _capacity;
 		std::shared_ptr<T> _ptr;
+		size_t _capacity;
+		my_data(T* a, size_t capacity) :
+			_ptr(a), _capacity(capacity) { } 
 	};
 
+	size_t _size;
+	bool _is_big;
 	union small_big_type {
 		T _small_data[size_small];
 		my_data _heap_data;
+		~small_big_type() {}
+		small_big_type() {}
+		void swap(small_big_type &b) noexcept {
+			for(size_t i = 0; i < size_small; i++) {
+				std::swap(_small_data[i], b._small_data[i]);
+			}
+		}
 	} _obj;
-
-	size_t _size;
 	T* _cur_data;
 
 	struct my_deleter {
@@ -84,15 +96,30 @@ private:
 
 template <class T>
 vector<T>::vector() :
-	_size(0) {
+	_size(0),
+	_is_big(false) {
 	update_data();
 }
 
 template <class T>
+vector<T>::~vector() {
+	if(is_big()) {
+		_obj._heap_data.~my_data();
+	}
+}
+
+template <class T>
 vector<T>::vector(vector const& a) :
-	_obj(a._obj),
 	_size(a.size()),
-	_heap_data(a._heap_data) {
+	_is_big(a._is_big) {
+	if(a.is_big()) {
+		new 	(&_obj._heap_data) my_data(a._obj._heap_data);
+	}
+	else {
+		for(size_t i = 0; i < size_small; i++) {
+			_obj._small_data[i] = a._obj._small_data[i];
+		}
+	}
 	update_data();
 }
 
@@ -170,19 +197,26 @@ void vector<T>::push_back(T value) {
 
 template <class T>
 void vector<T>::pop_back() {
-	if (is_big()) {
-		change();
-	}
+	change();
 	_size--;
 }
 
 template <class T>
 void vector<T>::swap(vector& a) noexcept {
 	using std::swap;
-	swap(a._obj, _obj);
+	swap(a._is_big, _is_big);
+	a._obj.swap(_obj);
 	swap(a._size, _size);
 	update_data();
 	a.update_data();
+}
+
+template <class T>
+void vector<T>::to_big() {
+	T* temp = copy_data(size(), get_data(), size());
+	new 	(&_obj._heap_data) my_data(temp, size());
+	_is_big = true;
+	update_data();
 }
 
 template <class T>
@@ -196,9 +230,12 @@ size_t vector<T>::get_new_capacity(size_t n) {
 template <class T>
 void vector<T>::set_capacity(size_t capacity) {
 	if (is_big() || capacity > size_small) {
+		if (!is_big()) {
+			to_big();
+		}
 		T* temp = copy_data(capacity, get_data(), size());
-		_obj._heap_data.reset(temp, vector<T>::my_deleter());
-		_obj._capacity = capacity;
+		_obj._heap_data._ptr.reset(temp, vector<T>::my_deleter());
+		_obj._heap_data._capacity = capacity;
 		_cur_data = _obj._heap_data._ptr.get();
 	}
 }
@@ -214,13 +251,13 @@ void vector<T>::change() {
 
 template <class T>
 bool vector<T>::is_big() const {
-	return _cur_data != _obj._small_data;
+	return _is_big;
 }
 
 template <class T>
 size_t vector<T>::get_capacity() {
 	if (is_big()) {
-		return _obj._capacity;
+		return _obj._heap_data._capacity;
 	}
 	return size_small;
 }
