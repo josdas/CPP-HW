@@ -1,9 +1,71 @@
-                section         .text
+extern scanf
+extern putchar
 
-                global          _start
-_start:
+%macro GET_CHAR_m 1.nolist
+    jmp %%after_data
+section .data
+    %%fmt db "%c", 0 ; db - 1 байт
+    %%read_tmp db 0
+    %%tmp dq 0 ; dq - 8 байт
+section .text
+%%after_data:
+    pushfq ; флаги на стек
+    push rax
+    push rcx
+    push rdx
+    push r8
+    push r9
+    push r10
+    push r11
+    mov rdx, %%read_tmp
+    mov rcx, %%fmt
+    call scanf
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rdx
+    pop rcx
+    pop rax
+    popfq
+    movzx %1, byte [%%read_tmp] ; Копирование с нулевым расширением
+%endmacro
 
+
+%macro PRINT_CHAR_m 1.nolist
+    jmp %%after_data
+section .data
+    %%tmp dq 0
+section .text
+    %%after_data:
+    mov qword[%%tmp], rax    
+    movzx rax, %1
+    pushfq
+    push qword[%%tmp]
+    push rcx
+    push rdx
+    push r8
+    push r9
+    push r10
+    push r11
+    and rax, 0xff
+    mov rcx, rax
+    call putchar
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rdx
+    pop rcx
+    pop rax
+    popfq
+%endmacro
+
+section .text
+    global main
+main:
                 mov             rbp, rsp; for correct debugging
+                mov             r15, rsp
 
                 sub             rsp, 2 * 128 * 8
                 lea             rdi, [rsp + 128 * 8]
@@ -21,7 +83,12 @@ _start:
                 
                 add             rsp, 2 * 128 * 8
                 xor             rax, rax
-                jmp             exit
+				
+                ret
+exit:
+                xor             rax, rax
+				mov             rsp, r15
+                ret
 
 ; subs two long number
 ;    rdi -- address of #1 (long number)
@@ -273,14 +340,8 @@ write_long:
                 
                 jnz             .minus
                 mov             r8, 0
-                push            rax ;rax, rdi, rsi, rdx
-                push            rdi
-                push            rcx
                 mov             al, '-'
                 call            write_char
-                pop             rcx
-                pop             rdi
-                pop             rax
                 
                 mov             rax, 1
                 call            inv_long
@@ -329,62 +390,36 @@ write_unslong:
 ;    rax == -1 if error occurs
 ;    rax \in [0; 255] if OK
 read_char:
-                push            rcx
-                push            rdi
-
-                sub             rsp, 1
-                xor             rax, rax
-                xor             rdi, rdi
-                mov             rsi, rsp
-                mov             rdx, 1
-                syscall
-
-                cmp             rax, 1
-                jne             .error
-                xor             rax, rax
-                mov             al, [rsp]
-                add             rsp, 1
-
-                pop             rdi
-                pop             rcx
-                ret
-.error:
-                mov             rax, -1
-                add             rsp, 1
-                pop             rdi
-                pop             rcx
+                GET_CHAR_m        rax
                 ret
 
 ; write one char to stdout, errors are ignored
 ;    al -- char
 write_char:
-                sub             rsp, 1
-                mov             [rsp], al
-
-                mov             rax, 1
-                mov             rdi, 1
-                mov             rsi, rsp
-                mov             rdx, 1
-                syscall
-                add             rsp, 1
+                PRINT_CHAR_m      al
                 ret
-
-exit:
-                mov             rax, 60
-                xor             rdi, rdi
-                syscall
-
+                
 ; print string to stdout
 ;    rsi -- string
 ;    rdx -- size
 print_string:
-                push            rax
-
-                mov             rax, 1
-                mov             rdi, 1
-                syscall
-
-                pop             rax
+                push             r8
+                push             rax
+                push             rsi
+                
+                mov              r8, rdx
+.loop1:
+                
+                mov              al, [rsi]
+                call             write_char
+                dec              r8
+                inc              rsi
+                cmp              r8, 0
+                JNE              .loop1
+                
+                pop              rsi
+                pop              rax
+                pop              r8
                 ret
 
 
