@@ -2,63 +2,63 @@ extern scanf
 extern putchar
 
 %macro GET_CHAR_m 1.nolist
-    jmp %%after_data
+				jmp %%after_data
 section .data
-    %%fmt db "%c", 0 ; db - 1 байт
-    %%read_tmp db 0
-    %%tmp dq 0 ; dq - 8 байт
+		%%fmt db "%c", 0 ; db - 1 байт
+		%%read_tmp db 0
+		%%tmp dq 0 ; dq - 8 байт
 section .text
 %%after_data:
-    pushfq ; флаги на стек
-    push rax
-    push rcx
-    push rdx
-    push r8
-    push r9
-    push r10
-    push r11
-    mov rdx, %%read_tmp
-    mov rcx, %%fmt
-    call scanf
-    pop r11
-    pop r10
-    pop r9
-    pop r8
-    pop rdx
-    pop rcx
-    pop rax
-    popfq
-    movzx %1, byte [%%read_tmp] ; Копирование с нулевым расширением
+				pushfq ; флаги на стек
+				push rax
+				push rcx
+				push rdx
+				push r8
+				push r9
+				push r10
+				push r11
+				mov rdx, %%read_tmp
+				mov rcx, %%fmt
+				call scanf
+				pop r11
+				pop r10
+				pop r9
+				pop r8
+				pop rdx
+				pop rcx
+				pop rax
+				popfq
+				movzx %1, byte [%%read_tmp] ; Копирование с нулевым расширением
 %endmacro
 
 
 %macro PRINT_CHAR_m 1.nolist
-    jmp %%after_data
+				jmp %%after_data
 section .data
-    %%tmp dq 0
+		%%tmp dq 0
 section .text
-    %%after_data:
-    mov qword[%%tmp], rax    
-    movzx rax, %1
-    pushfq
-    push qword[%%tmp]
-    push rcx
-    push rdx
-    push r8
-    push r9
-    push r10
-    push r11
-    and rax, 0xff
-    mov rcx, rax
-    call putchar
-    pop r11
-    pop r10
-    pop r9
-    pop r8
-    pop rdx
-    pop rcx
-    pop rax
-    popfq
+				%%after_data:
+				mov qword[%%tmp], rax    
+				movzx rax, %1
+				pushfq
+				push qword[%%tmp]
+				push rcx
+				push rdx
+				push r8
+				push r9
+				push r10
+				push r11
+				and rax, 0xff
+				mov rcx, rax
+				call putchar
+				pop r11
+				pop r10
+				pop r9
+				pop r8
+				pop rdx
+				pop rcx
+				pop rax
+				popfq
 %endmacro
 
 section .text
@@ -68,7 +68,7 @@ main:
                 mov             r15, rsp
 
                 sub             rsp, 2 * 128 * 8
-                lea             rdi, [rsp + 128 * 8]
+                lea             rdi, [rsp + 128 * 8] ; mov + вычисления
                 mov             rcx, 128
                 call            read_long
                 mov             rdi, rsp
@@ -131,7 +131,7 @@ add_long_long:
                 mov             rax, [rsi]
                 lea             rsi, [rsi + 8]
                 adc             [rdi], rax
-                lea             rdi, [rdi + 8]
+                lea             rdi, [rdi++++++++++ + 8]
                 dec             rcx
                 jnz             .loop
 
@@ -254,7 +254,7 @@ set_zero:
                 push            rcx
 
                 xor             rax, rax
-                rep stosq
+                rep 			stosq
 
                 pop             rcx
                 pop             rdi
@@ -272,7 +272,7 @@ is_zero:
                 push            rcx
 
                 xor             rax, rax
-                rep scasq
+                rep 			scasq
 
                 pop             rcx
                 pop             rdi
