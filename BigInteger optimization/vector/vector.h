@@ -278,7 +278,7 @@ template <class T>
 void vector<T>::change() {
 	if (is_big() && !_data.big_data.ptr.unique()) {
 		_data.big_data.ptr.reset(copy_data(size(), get_data(), size()),
-		                          vector<T>::my_deleter());
+		                         vector<T>::my_deleter());
 		_cur_data = _data.big_data.ptr.get();
 	}
 }
